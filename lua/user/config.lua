@@ -1,0 +1,5 @@
+return {
+    ui = {
+      italics = false,
+    },
+}
