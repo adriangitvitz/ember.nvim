@@ -6,7 +6,7 @@ return {
   config = function()
     require("orgdown").setup({
       modules = {
-        preview = true,
+        preview = false,
         agenda = true,
         babel = true,
         folding = true,
@@ -14,20 +14,9 @@ return {
         capture = true,
         vault = true,
       },
-      preview = {
-        mode = "split",
-        position = "right",
-        width = 0.5,
-        height = 0.8,
-        border = "rounded",
-        live_update = true,
-        debounce_ms = 150,
-        scroll_sync = true,
-      },
       agenda = {
         files = {
-          "~/notes/**/*.md",
-          "~/.debug-notes/**/*.md",
+          "~/vault/**/*.md",
         },
         todo_keywords = {
           todo = { "TODO", "NEXT", "WAITING" },
@@ -56,35 +45,40 @@ return {
         create_missing = true,
       },
       capture = {
-        default_file = vim.fn.expand("~/.debug-notes/inbox.md"),
+        default_file = vim.fn.expand("~/vault/inbox/inbox.md"),
         templates = {
           t = {
             name = "Todo",
             template = "- [ ] %?",
-            file = vim.fn.expand("~/.debug-notes/todos.md"),
+            file = vim.fn.expand("~/vault/inbox/todos.md"),
           },
           s = {
             name = "Scheduled Todo",
             template = "- [ ] %? SCHEDULED: %t",
-            file = vim.fn.expand("~/.debug-notes/todos.md"),
+            file = vim.fn.expand("~/vault/inbox/todos.md"),
           },
           n = {
             name = "Note",
             template = "## %?\n\n",
-            file = vim.fn.expand("~/.debug-notes/notes.md"),
+            file = vim.fn.expand("~/vault/inbox/notes.md"),
           },
           j = {
             name = "Journal",
             template = "## %T\n\n%?",
-            file = vim.fn.expand("~/.debug-notes/journal.md"),
+            file = vim.fn.expand("~/vault/inbox/journal.md"),
           },
         },
       },
       vault = {
-        root = vim.fn.expand("~/notes"),
-        daily_folder = "daily",
-        templates_folder = ".templates",
-        topics = { "learning", "programming", "projects" },
+        root = vim.fn.expand("~/vault"),
+        daily = {
+          enabled = true,
+          date_format = "%Y-%m-%d",
+          template = "templates/daily.md",
+        },
+        inbox = { file = "inbox/inbox.md" },
+        store = { binary = "orgdown-store", path = "~/.orgdown" },
+        topics = {},
       },
       keymaps = {
         preview_toggle = false,

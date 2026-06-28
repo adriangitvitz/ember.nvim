@@ -13,7 +13,6 @@ M.defaults = {
       bookmarks = { enabled = true },
       ["which-key"] = { enabled = true },
       gitsigns = { enabled = true },
-      diffview = { enabled = true },
       ["todo-comments"] = { enabled = true },
     },
     lsp = {
@@ -30,7 +29,6 @@ M.defaults = {
     tools = {
       enabled = true,
       pm = { enabled = true },
-      learn = { enabled = true },
       pyeval = { enabled = true },
       miniterm = { enabled = true },
       quicksearch = { enabled = true },
@@ -44,7 +42,7 @@ M.defaults = {
     keymaps = { enabled = true },
     handlers = {
       hover = { border = "rounded" },
-      diagnostic = { virtual_text = true },
+      diagnostic = { virtual_text = false },
     },
     langs = {
       python = { enabled = true },
@@ -60,7 +58,7 @@ M.defaults = {
     },
   },
   ui = {
-    colorscheme = "midnight-ember",
+    colorscheme = "deep-teal-calm",
     transparent = false,
     border = "rounded",
     italics = true,

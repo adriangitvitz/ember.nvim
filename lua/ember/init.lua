@@ -22,9 +22,39 @@ function M.setup(opts)
   end
   require("ember.lsp").setup()
   loader.setup_treesitter()
+
+  pcall(function()
+    require("nvim-treesitter").setup({
+      install_dir = vim.fn.stdpath("data") .. "/site",
+    })
+
+    require("nvim-treesitter").install({
+      "markdown", "markdown_inline",
+      "python", "lua", "javascript", "typescript", "tsx",
+      "zig", "c", "cpp", "rust", "go", "gomod", "gosum",
+      "odin", "nim",
+      "json", "yaml", "toml", "html", "css", "bash",
+      "regex", "comment", "diff", "gitcommit", "gitignore",
+      "vim", "vimdoc",
+    })
+
+    vim.api.nvim_create_autocmd("FileType", {
+      group = vim.api.nvim_create_augroup("EmberTreesitter", { clear = true }),
+      callback = function()
+        if not pcall(vim.treesitter.start) then return end
+        vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+        vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+      end,
+    })
+  end)
+
   loader.load_all_bundled()
   loader.refresh()
-  vim.cmd.colorscheme("midnight-ember")
+
+  local themes = require("ember.themes")
+  themes.setup()
+  themes.load(config.ui.colorscheme)
+
   M.setup_plugins(config)
   require("ember.icons").setup_highlights()
   require("ember.todo").setup()
@@ -33,7 +63,11 @@ end
 function M.setup_plugins(config)
   pcall(function() require("slimline").setup() end)
   pcall(function() require("autopairs").setup() end)
-  pcall(function() require("lsp-enhanced").setup() end)
+  pcall(function()
+    require("lsp-enhanced").setup({
+      request = { debounce = false, cancellation = false, batching = false },
+    })
+  end)
   pcall(function()
     require("miniterm").setup()
     vim.keymap.set({ "n", "t" }, "<C-\\>", function()
@@ -70,7 +104,6 @@ function M.setup_plugins(config)
       vim.keymap.set("n", "<leader>pR", "<cmd>PmTimeReport week<CR>", { desc = "Time report (week)" })
     end
   end)
-  pcall(function() require("learn").setup() end)
   pcall(function() require("pyeval").setup() end)
   pcall(function() require("quicksearch").setup() end)
   pcall(function()
@@ -105,13 +138,96 @@ function M.setup_plugins(config)
       end
     end
   end)
+  pcall(function()
+    require("render-markdown").setup({
+      heading = { sign = false },
+      checkbox = {
+        unchecked = { icon = "[ ]" },
+        checked = { icon = "[x]" },
+      },
+      file_types = { "markdown", "Avante" },
+    })
+  end)
+  pcall(function() require("kb").setup() end)
   pcall(function() require("picker").setup() end)
   pcall(function() require("gitsigns").setup() end)
+  pcall(function() require("git-extras").setup() end)
   pcall(function() require("format").setup() end)
-  pcall(function() require("diffview").setup() end)
   pcall(function() require("which-key").setup() end)
-  pcall(function() require("dashboard").setup() end)
   pcall(function() require("bookmarks").setup() end)
+  pcall(function()
+    local bento = require("bento")
+    local compat = require("bento.ember-compat")
+
+    bento.setup({
+      main_keymap = ";",
+      lock_char = "",
+      ordering_metric = nil,
+      ui = {
+        mode = "tabline",
+        tabline = {
+          left_page_symbol = "<",
+          right_page_symbol = ">",
+          separator_symbol = "|",
+        },
+      },
+    })
+
+    compat.setup()
+
+    vim.keymap.set("n", ";", "<Cmd>lua require('bento.ui').handle_main_keymap()<CR>",
+      { desc = "Buffer manager" })
+
+    vim.keymap.set("n", "<Tab>", compat.next_buffer, { desc = "Next buffer" })
+    vim.keymap.set("n", "<S-Tab>", compat.prev_buffer, { desc = "Previous buffer" })
+    vim.keymap.set("n", "[b", compat.prev_buffer, { desc = "Previous buffer" })
+    vim.keymap.set("n", "]b", compat.next_buffer, { desc = "Next buffer" })
+    vim.keymap.set("n", "<leader>bp", function() bento.toggle_lock() end,
+      { desc = "Pin/unpin buffer" })
+    vim.keymap.set("n", "<leader>bc", function()
+      vim.api.nvim_buf_delete(0, { force = false })
+    end, { desc = "Close buffer" })
+    vim.keymap.set("n", "<leader>bd", function()
+      vim.api.nvim_buf_delete(0, { force = false })
+    end, { desc = "Close buffer" })
+    vim.keymap.set("n", "<leader>bo", compat.close_other_buffers,
+      { desc = "Close other buffers" })
+    vim.keymap.set("n", "<leader>br", compat.restore_buffer,
+      { desc = "Restore closed buffer" })
+    vim.keymap.set("n", "<A-,>", function()
+      compat.move_buffer(vim.api.nvim_get_current_buf(), -1)
+    end, { desc = "Move buffer left" })
+    vim.keymap.set("n", "<A-.>", function()
+      compat.move_buffer(vim.api.nvim_get_current_buf(), 1)
+    end, { desc = "Move buffer right" })
+
+    for i = 1, 9 do
+      vim.keymap.set("n", "<leader>" .. i, function()
+        compat.goto_buffer(i)
+      end, { desc = "Go to buffer " .. i })
+    end
+  end)
+  pcall(function()
+    require("searchr").setup({
+      keymaps = {
+        open = "<leader>sr",
+        open_word = "<leader>sw",
+      },
+    })
+  end)
+  pcall(function()
+    local telescope_dir = vim.fn.stdpath("config") .. "/lua/plugins/telescope.nvim"
+    if not vim.uv.fs_stat(telescope_dir) then
+      return
+    end
+    local spec = require("ember.plugins.tools.leetcode")
+    if spec.config then spec.config() end
+    if spec.keys then
+      for _, k in ipairs(spec.keys) do
+        vim.keymap.set("n", k[1], k[2], { desc = k.desc })
+      end
+    end
+  end)
 end
 function M.ensure_user_dir()
   local config_path = vim.fn.stdpath("config")

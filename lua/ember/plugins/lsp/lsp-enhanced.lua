@@ -31,6 +31,7 @@ return {
         focusable = true,
         syntax_highlighting = true,
       },
+      request = { debounce = false, cancellation = false, batching = false },
     })
   end,
 }

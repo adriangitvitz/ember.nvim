@@ -61,6 +61,7 @@ local function pick_locations(locations, opts)
   fzf.run({
     items = items,
     prompt = opts.prompt or "LSP",
+    delimiter = ":",
     preview_cmd = 'bat --style=numbers --color=always --highlight-line {2} {1} 2>/dev/null || head -500 {1}',
     on_select = function(selection, action)
       local parsed = actions.parse_lsp_location(selection)

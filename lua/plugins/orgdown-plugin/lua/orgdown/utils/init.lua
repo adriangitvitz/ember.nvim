@@ -1,7 +1,7 @@
 local M = {}
 function M.is_markdown_buffer(bufnr)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
-  local ft = vim.api.nvim_buf_get_option(bufnr, "filetype")
+  local ft = vim.bo[bufnr].filetype
   return ft == "markdown"
 end
 function M.trim(str)

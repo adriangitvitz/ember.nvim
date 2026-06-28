@@ -94,7 +94,9 @@ function M.clear()
   utils.notify("Quickfix list cleared", vim.log.levels.INFO)
 end
 function M.handle_enter()
-  local qf_list = vim.fn.getqflist()
+  local winid = vim.fn.win_getid()
+  local is_loclist = vim.fn.getwininfo(winid)[1].loclist == 1
+  local qf_list = is_loclist and vim.fn.getloclist(0) or vim.fn.getqflist()
   local idx = vim.fn.line(".")
   local item = qf_list[idx]
   if not item or not item.bufnr or item.bufnr == 0 then

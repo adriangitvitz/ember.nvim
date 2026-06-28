@@ -67,7 +67,6 @@ function M.check()
   local tools = {
     { cmd = "pm", name = "pm-cli (Project Manager)" },
     { cmd = "dn-tui", name = "dn-tui (Notes)", path = vim.fn.expand("~/Projects/organized/lua/dn-tui/build/dn-tui") },
-    { cmd = "learn", name = "learn (Learning)", path = vim.fn.expand("~/Projects/organized/learn/bin/learn") },
     { cmd = "lazygit", name = "lazygit" },
   }
   for _, tool in ipairs(tools) do
@@ -89,7 +88,6 @@ function M.check()
     "autopairs",
     "miniterm",
     "pm",
-    "learn",
     "pyeval",
     "quicksearch",
     "notelinks",

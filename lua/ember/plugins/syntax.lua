@@ -8,6 +8,7 @@ return {
         "markdown",
         "markdown_inline",
         "latex",
+
         "python",
         "lua",
         "javascript",
@@ -20,9 +21,9 @@ return {
         "go",
         "gomod",
         "gosum",
-        "crystal",
         "odin",
         "nim",
+
         "json",
         "jsonc",
         "yaml",

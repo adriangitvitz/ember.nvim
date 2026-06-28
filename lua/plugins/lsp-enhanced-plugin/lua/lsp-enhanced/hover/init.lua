@@ -109,8 +109,6 @@ function M.setup_handler_override()
     local win = vim.api.nvim_open_win(bufnr, false, win_config)
     vim.api.nvim_win_set_option(win, 'wrap', true)
     vim.api.nvim_win_set_option(win, 'linebreak', true)
-    vim.api.nvim_win_set_option(win, 'conceallevel', 2)
-    vim.api.nvim_win_set_option(win, 'concealcursor', 'n')
     if not config.focusable then
       vim.api.nvim_create_autocmd({'CursorMoved', 'CursorMovedI', 'BufLeave'}, {
         buffer = vim.api.nvim_get_current_buf(),

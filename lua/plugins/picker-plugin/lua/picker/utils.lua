@@ -60,6 +60,10 @@ end
 function M.get_word_under_cursor()
   return vim.fn.expand("<cword>")
 end
+function M.strip_ansi(str)
+  if not str then return str end
+  return str:gsub("\027%[[%d;]*m", "")
+end
 function M.relative_path(full_path, root)
   root = root or M.get_project_root()
   if full_path:sub(1, #root) == root then

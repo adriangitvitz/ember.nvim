@@ -1,4 +1,5 @@
 local M = {}
+local utils = require("picker.utils")
 function M.open_file(path, line, col, action)
   if not path or path == "" then
     return
@@ -13,12 +14,24 @@ function M.open_file(path, line, col, action)
     vim.cmd("edit " .. vim.fn.fnameescape(path))
   end
   if line then
-    vim.api.nvim_win_set_cursor(0, { tonumber(line), (col and tonumber(col) - 1) or 0 })
-    vim.cmd("normal! zz")
+    local lnum = tonumber(line)
+    local colnum = (col and tonumber(col) - 1) or 0
+    vim.schedule(function()
+      local line_count = vim.api.nvim_buf_line_count(0)
+      if lnum > line_count then
+        lnum = line_count
+      end
+      if lnum < 1 then
+        lnum = 1
+      end
+      pcall(vim.api.nvim_win_set_cursor, 0, { lnum, colnum })
+      vim.cmd("normal! zz")
+    end)
   end
 end
 function M.parse_grep_result(line)
-  local file, lnum, col, text = line:match("^(.+):(%d+):(%d+):(.*)$")
+  local clean_line = utils.strip_ansi(line)
+  local file, lnum, col, text = clean_line:match("^(.+):(%d+):(%d+):(.*)$")
   if file then
     return {
       file = file,
@@ -27,7 +40,7 @@ function M.parse_grep_result(line)
       text = text,
     }
   end
-  file, lnum, text = line:match("^(.+):(%d+):(.*)$")
+  file, lnum, text = clean_line:match("^(.+):(%d+):(.*)$")
   if file then
     return {
       file = file,
@@ -38,10 +51,17 @@ function M.parse_grep_result(line)
   end
   return nil
 end
-function M.open_grep_result(line, action)
+function M.open_grep_result(line, action, cwd)
   local parsed = M.parse_grep_result(line)
   if parsed then
-    M.open_file(parsed.file, parsed.line, parsed.col, action)
+    local file_path = parsed.file
+    if cwd and file_path:sub(1, 1) ~= "/" then
+      file_path = cwd .. "/" .. file_path
+    end
+    vim.notify("Opening: " .. file_path .. " (exists: " .. tostring(vim.fn.filereadable(file_path) == 1) .. ")", vim.log.levels.INFO)
+    M.open_file(file_path, parsed.line, parsed.col, action)
+  else
+    vim.notify("Failed to parse: " .. line, vim.log.levels.WARN)
   end
 end
 function M.parse_lsp_location(line)
@@ -56,7 +76,7 @@ function M.parse_lsp_location(line)
   return nil
 end
 function M.open_buffer(buf_info, action)
-  local bufnr = tonumber(buf_info:match("^(%d+)"))
+  local bufnr = tonumber(buf_info:match("^.(%d+):"))
   if bufnr then
     if action == "ctrl-x" then
       vim.cmd("sbuffer " .. bufnr)

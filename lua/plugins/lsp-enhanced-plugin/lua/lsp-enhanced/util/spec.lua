@@ -131,7 +131,7 @@ function M.extract_completion_items(result)
   if result.items then
     return result.items
   end
-  if vim.tbl_islist(result) then
+  if vim.islist(result) then
     return result
   end
   return {}

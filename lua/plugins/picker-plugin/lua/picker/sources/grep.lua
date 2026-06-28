@@ -96,7 +96,7 @@ function M.live_grep(opts)
           local action = lines[1]
           for i = 2, #lines do
             if lines[i] ~= "" then
-              actions.open_grep_result(lines[i], action)
+              actions.open_grep_result(lines[i], action, root)
             end
           end
         end
@@ -120,16 +120,17 @@ function M.grep(pattern, opts)
   fzf.run({
     source_cmd = "cd " .. vim.fn.shellescape(root) .. " && " .. rg_cmd,
     prompt = "Grep: " .. (pattern or ""),
+    delimiter = ":",
     preview_cmd = 'bat --style=numbers --color=always --highlight-line {2} {1} 2>/dev/null || head -500 {1}',
     on_select = function(selection, action)
-      actions.open_grep_result(selection, action)
+      actions.open_grep_result(selection, action, root)
     end,
     on_multi_select = function(selections, action)
       if #selections > 5 then
         actions.send_to_quickfix(selections, "Grep: " .. pattern)
       else
         for _, sel in ipairs(selections) do
-          actions.open_grep_result(sel, action)
+          actions.open_grep_result(sel, action, root)
         end
       end
     end,
@@ -153,6 +154,7 @@ function M.grep_buffer(pattern, opts)
   fzf.run({
     source_cmd = rg_cmd,
     prompt = "Buffer Grep",
+    delimiter = ":",
     preview_cmd = 'bat --style=numbers --color=always --highlight-line {2} {1} 2>/dev/null || head -500 {1}',
     on_select = function(selection, action)
       actions.open_grep_result(selection, action)

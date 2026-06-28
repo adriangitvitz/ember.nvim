@@ -318,7 +318,13 @@ function M.setup(opts)
       name = "Leader",
       b = {
         name = "Buffer/Bookmarks",
+        c = "Close buffer",
+        d = "Close buffer",
+        j = "Jump to buffer",
         m = { name = "Bookmarks" },
+        o = "Close other buffers",
+        p = "Pin/unpin buffer",
+        r = "Restore closed buffer",
       },
       c = { name = "Code" },
       d = { name = "Diagnostics" },

@@ -12,19 +12,24 @@ function M.attach(bufnr)
   vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
   vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
   vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
-  vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
-  vim.keymap.set("n", "]d", vim.diagnostic.goto_next, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
+  vim.keymap.set("n", "[d", function() vim.diagnostic.jump({ count = -1 }) end, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
+  vim.keymap.set("n", "]d", function() vim.diagnostic.jump({ count = 1 }) end, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
   vim.keymap.set("n", "gl", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Show diagnostic" }))
   vim.keymap.set("n", "<leader>dl", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Show diagnostic" }))
   vim.keymap.set("n", "<leader>dq", vim.diagnostic.setloclist, vim.tbl_extend("force", opts, { desc = "Diagnostics to loclist" }))
   vim.keymap.set("n", "[e", function()
-    vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR })
+    vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR })
   end, vim.tbl_extend("force", opts, { desc = "Previous error" }))
   vim.keymap.set("n", "]e", function()
-    vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
+    vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
   end, vim.tbl_extend("force", opts, { desc = "Next error" }))
   vim.keymap.set("n", "<leader>de", function()
-    vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR, wrap = true })
+    vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR })
   end, vim.tbl_extend("force", opts, { desc = "Go to first error" }))
+  local function trigger_completion() vim.lsp.completion.get() end
+  for _, lhs in ipairs({ "<C-l>", "<C-Space>", "<C-@>", "<Nul>" }) do
+    vim.keymap.set("i", lhs, trigger_completion,
+      vim.tbl_extend("force", opts, { desc = "Trigger LSP completion (" .. lhs .. ")" }))
+  end
 end
 return M

@@ -30,7 +30,7 @@ function M.setup()
   opt.wrap = false
   opt.scrolloff = 8
   opt.sidescrolloff = 8
-  opt.cursorline = false
+  opt.cursorline = true
   opt.ignorecase = true
   opt.smartcase = true
   opt.hlsearch = true
@@ -49,9 +49,9 @@ function M.setup()
   opt.undofile = true
   opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
   opt.mouse = "a"
-  opt.completeopt = { "menu", "menuone", "noselect" }
+  opt.completeopt = { "menu", "menuone", "noselect", "fuzzy", "popup" }
   opt.pumheight = 15
-  opt.pumblend = 10
+  opt.pumblend = 0
   opt.timeoutlen = 500
   opt.hidden = true
   opt.cmdheight = 1
@@ -61,7 +61,7 @@ function M.setup()
     callback = function()
       local bt = vim.bo.buftype
       local ft = vim.bo.filetype
-      if bt == "" and ft ~= "dashboard" and ft ~= "netrw" then
+      if bt == "" and ft ~= "netrw" then
         vim.wo.number = true
         vim.wo.relativenumber = true
         vim.wo.signcolumn = "yes"

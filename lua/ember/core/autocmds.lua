@@ -6,7 +6,7 @@ function M.setup()
   autocmd("TextYankPost", {
     group = "YankHighlight",
     callback = function()
-      vim.highlight.on_yank({ higroup = "IncSearch", timeout = 200 })
+      vim.hl.on_yank({ higroup = "IncSearch", timeout = 200 })
     end,
   })
   augroup("TrimWhitespace", { clear = true })
@@ -14,6 +14,8 @@ function M.setup()
     group = "TrimWhitespace",
     pattern = "*",
     callback = function()
+      if not vim.bo.modifiable or vim.bo.buftype ~= "" then return end
+      if vim.bo.filetype == "rust" then return end
       local cursor = vim.api.nvim_win_get_cursor(0)
       vim.cmd([[%s/\s\+$//e]])
       vim.api.nvim_win_set_cursor(0, cursor)

@@ -79,6 +79,9 @@ local function build_fzf_args(opts)
     table.insert(args, "--preview=" .. vim.fn.shellescape(opts.preview_cmd))
     table.insert(args, "--preview-window=" .. preview_pos .. ":" .. preview_size)
   end
+  if opts.delimiter then
+    table.insert(args, "--delimiter=" .. vim.fn.shellescape(opts.delimiter))
+  end
   table.insert(args, "--bind=ctrl-a:select-all,ctrl-d:deselect-all")
   table.insert(args, "--expect=ctrl-x,ctrl-v,ctrl-t")
   return args

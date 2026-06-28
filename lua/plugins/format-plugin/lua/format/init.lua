@@ -1,4 +1,5 @@
 local M = {}
+M.last_error = nil
 M.config = {
   format_on_save = true,
   format_timeout = 3000,
@@ -25,7 +26,7 @@ M.config = {
     zsh = { "shfmt" },
     zig = { lsp = true },
     nim = { lsp = true },
-    crystal = { lsp = true },
+    crystal = { "crystal_format" },
     odin = { lsp = true },
   },
   formatters = {
@@ -61,12 +62,24 @@ M.config = {
     },
     clang_format = {
       cmd = "clang-format",
-      args = { "--assume-filename=" .. vim.api.nvim_buf_get_name(0) },
+      args = function()
+        local filename = vim.api.nvim_buf_get_name(0)
+        if filename == "" then
+          local ft = vim.bo.filetype
+          filename = ft == "cpp" and "temp.cpp" or "temp.c"
+        end
+        return { "--assume-filename=" .. filename }
+      end,
       stdin = true,
     },
     shfmt = {
       cmd = "shfmt",
       args = { "-i", "2", "-" },
+      stdin = true,
+    },
+    crystal_format = {
+      cmd = "crystal",
+      args = { "tool", "format", "-" },
       stdin = true,
     },
   },
@@ -122,7 +135,13 @@ local function run_formatter(formatter, content, callback)
       vim.schedule(function()
         if exit_code ~= 0 then
           local err = table.concat(stderr, "\n")
-          callback(nil, "Formatter failed: " .. err)
+          local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":t")
+          M.last_error = {
+            file = filename,
+            message = err,
+            time = os.time(),
+          }
+          callback(nil, "Format failed: " .. filename .. " (run :FormatError for details)")
         else
           if stdout[#stdout] == "" then
             table.remove(stdout)
@@ -141,7 +160,7 @@ local function run_formatter(formatter, content, callback)
     vim.fn.chanclose(job_id, "stdin")
   end
 end
-local function format_lsp(bufnr, callback)
+local function format_lsp(bufnr, callback, async)
   local clients = vim.lsp.get_clients({ bufnr = bufnr })
   local formatting_clients = vim.tbl_filter(function(client)
     return client.server_capabilities.documentFormattingProvider
@@ -153,7 +172,7 @@ local function format_lsp(bufnr, callback)
   vim.lsp.buf.format({
     bufnr = bufnr,
     timeout_ms = M.config.format_timeout,
-    async = true,
+    async = async ~= false,
   })
   callback({})
 end
@@ -172,7 +191,7 @@ function M.format(opts)
       if err and M.config.notify_on_error then
         vim.notify(err, vim.log.levels.WARN)
       end
-    end)
+    end, opts.async)
     return
   end
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -217,7 +236,7 @@ local function enable_format_on_save(bufnr)
     buffer = bufnr,
     group = vim.api.nvim_create_augroup("FormatOnSave" .. bufnr, { clear = true }),
     callback = function()
-      M.format({ bufnr = bufnr })
+      M.format({ bufnr = bufnr, async = false })
     end,
   })
 end
@@ -272,8 +291,22 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("FormatList", function()
     M.list_formatters()
   end, { desc = "List formatters" })
+  vim.api.nvim_create_user_command("FormatError", function()
+    if M.last_error then
+      local buf = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(M.last_error.message, "\n"))
+      vim.bo[buf].filetype = "text"
+      vim.bo[buf].bufhidden = "wipe"
+      vim.cmd("botright split")
+      vim.api.nvim_win_set_buf(0, buf)
+      vim.api.nvim_win_set_height(0, math.min(15, vim.api.nvim_buf_line_count(buf)))
+    else
+      vim.notify("No format errors", vim.log.levels.INFO)
+    end
+  end, { desc = "Show last format error" })
   vim.keymap.set("n", "<leader>cf", M.format, { desc = "Format buffer" })
   vim.keymap.set("n", "<leader>cF", M.toggle_format_on_save, { desc = "Toggle format on save" })
+  vim.keymap.set("n", "<leader>ce", "<cmd>FormatError<CR>", { desc = "Show format error" })
   if M.config.format_on_save then
     vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
       group = vim.api.nvim_create_augroup("FormatSetup", { clear = true }),

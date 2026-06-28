@@ -23,7 +23,8 @@ local function extract_tags(lines)
         local tag_line = line:match("^tags:%s*%[(.+)%]$")
         if tag_line then
           for tag in tag_line:gmatch("[^,%s]+") do
-            table.insert(tags, tag:gsub('"', ""):gsub("'", ""))
+            local clean = (tag:gsub('"', ""):gsub("'", ""))
+            table.insert(tags, clean)
           end
         end
       end
