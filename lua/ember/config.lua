@@ -58,7 +58,7 @@ M.defaults = {
     },
   },
   ui = {
-    colorscheme = "deep-teal-calm",
+    colorscheme = "darcubox-hc",
     transparent = false,
     border = "rounded",
     italics = true,
